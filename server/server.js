@@ -9,7 +9,6 @@
 
 const WebSocket = require("ws");
 
-
 const PORT = process.env.PORT || 8080;
 
 // Create WebSocket server
@@ -21,7 +20,6 @@ const clients = new Map();
 function getTimestamp() {
   return new Date().toLocaleString();
 }
-
 
 wss.on("connection", (ws) => {
   // first message from client as username
@@ -39,6 +37,24 @@ wss.on("connection", (ws) => {
       }
     });
   });
+
+  // Handle all subsequent message as chat message
+  ws.on("message", (message) => {
+    const text = message.toString().trim();
+    const username = clients.get(ws);
+    const time = getTimestamp();
+
+    // Formatting message
+    const finalMessage = `${time}: ${username} said: ${text}`;
+
+    // Broadcasting to all connected clients
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(finalMessage);
+      }
+    });
+  });
+
   // client disconnection
   ws.on("close", () => {
     const username = clients.get(ws);

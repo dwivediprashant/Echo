@@ -6,8 +6,9 @@ In here, after solving an issue successfully, **(IF AND ONLY IF IT IS MENTIONED 
 Format of documentation: </br>
 
 {your github id} {issue number and name}: </br>
+
 - List of all features you've implemented, any particular format regarding them etc. Screenshots are allowed and appreciated.
-- also - zero emojis. or em dashes. 
+- also - zero emojis. or em dashes.
 - Begin writing documentation from after the heading.
 
 # DOCUMENTATION
@@ -16,10 +17,25 @@ Format of documentation: </br>
 
 - Added chat.go, changed main.go to call chat.go
 - chat.go has 3 functions:
+
 ```go
 connectToEchoServer() // connects to the server, sends the username, printout the server message
 getUsername() // gets the username from the user/stdin and returns it as a string
-getTimestamp() // returns the current timestamp as a string in the format of "02/01/2006 03:04:05 PM" 
+getTimestamp() // returns the current timestamp as a string in the format of "02/01/2006 03:04:05 PM"
 ```
+
 - go.mod was updated to include the module github.com/gorilla/websocket
-- tested the code locally 
+- tested the code locally
+
+### {HarshitRSethi} {#67 Getting an Upgrade!}
+
+- Updated server/server.js so that:
+  - the first message sent by a client is treated as the username and stored for that connection
+  - every message after that is treated as a chat message
+  - each message is broadcast to all connected clients
+  - messages include a timestamp and the username of the sender
+- Updated client/chat.go so that:
+  - after sending the username once, the user can continue sending chat messages from the terminal
+  - messages received from the server are printed along with timestamps
+  - a goroutine is used to listen for incoming messages while the main thread handles user input
+- Tested locally with two clients connected to the same server to verify that messages are sent and received correctly, with usernames and timestamps shown as expected

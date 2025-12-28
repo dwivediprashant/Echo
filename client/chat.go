@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"time"
+	"strings"
 )
 
 func connectToEchoServer(serverURL string, username string) error {
@@ -31,22 +32,35 @@ func connectToEchoServer(serverURL string, username string) error {
 	fmt.Println("-------------------------------------------")
 	fmt.Println("Listening for messages from server...")
 
-	for {
-		messageType, data, err := c.ReadMessage()
-		if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-			log.Printf("error: %v", err)
-			return err
+	// Run a goroutine so incoming messages are received in background while user types
+	go func(){
+		for {
+			messageType, data, err := c.ReadMessage()
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("error: %v", err)
+				log.Println(err)
+				return
+			}
+			if err != nil {
+				fmt.Printf("error: %v\n", err)
+				break
+			}
+			if messageType == websocket.TextMessage {
+				timestamp := getTimestamp()
+				message := string(data)
+				fmt.Printf("[%s] Server -> Client: %s\n", timestamp, message)
+			}
 		}
-		if err != nil {
-			fmt.Printf("error: %v\n", err)
-			break
-		}
-		if messageType == websocket.TextMessage {
-			timestamp := getTimestamp()
-			message := string(data)
-			fmt.Printf("[%s] Server -> Client: %s\n", timestamp, message)
-		}
+	}()
 
+	// Read for terminal input
+	reader := bufio.NewReader(os.Stdin)
+	
+	// Infinite loop so that user can keep sending messages
+	for {
+		text, _ := reader.ReadString('\n')
+		text = strings.TrimSpace(text)
+		c.WriteMessage(websocket.TextMessage, []byte(text))
 	}
 	return nil
 
